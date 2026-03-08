@@ -34,6 +34,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { formatBirthdayForDisplayBr } from '@/core/contacts/contact.birthday';
 import type { Contact } from '@/core/contacts/contact.types';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -157,6 +162,19 @@ function formatPhoneForDisplay(value: string | undefined): string {
   if (digits.length === 10) {
     return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
   }
+
+  return digits;
+}
+
+function buildWhatsAppNumber(value: string | undefined): string | undefined {
+  const digits = (value ?? '').replace(/\D/g, '');
+  if (!digits) return undefined;
+
+  // WhatsApp expects country code. If already international, keep as-is.
+  if (digits.startsWith('55') && digits.length >= 12) return digits;
+
+  // Fallback for BR local numbers without country code.
+  if (digits.length === 10 || digits.length === 11) return `55${digits}`;
 
   return digits;
 }
@@ -364,17 +382,60 @@ export const ContactList = memo(function ContactList({
                     }
 
                     if (column === 'contact') {
+                      const rawPhone = contact.phones[0]?.value;
+                      const formattedPhone = formatPhoneForDisplay(rawPhone);
+                      const whatsappNumber = buildWhatsAppNumber(rawPhone);
+                      const whatsappHref = whatsappNumber
+                        ? `https://wa.me/${whatsappNumber}`
+                        : undefined;
+                      const email = contact.emails[0]?.value?.trim();
+                      const mailtoHref = email
+                        ? `mailto:${encodeURIComponent(email)}`
+                        : undefined;
+
                       return (
                         <TableCell
                           key={`${contact.id}-contact`}
                           className="min-w-0"
                         >
-                          <div className="truncate text-sm">
-                            {formatPhoneForDisplay(contact.phones[0]?.value)}
-                          </div>
-                          <div className="truncate text-sm text-muted-foreground">
-                            {contact.emails[0]?.value ?? ''}
-                          </div>
+                          {whatsappHref ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <a
+                                  href={whatsappHref}
+                                  target="_blank"
+                                  rel="noreferrer noopener"
+                                  className="block truncate text-sm hover:underline"
+                                  onClick={event => event.stopPropagation()}
+                                >
+                                  {formattedPhone}
+                                </a>
+                              </TooltipTrigger>
+                              <TooltipContent>Abrir no WhatsApp</TooltipContent>
+                            </Tooltip>
+                          ) : (
+                            <div className="truncate text-sm">
+                              {formattedPhone}
+                            </div>
+                          )}
+                          {mailtoHref ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <a
+                                  href={mailtoHref}
+                                  className="block truncate text-sm text-muted-foreground hover:underline"
+                                  onClick={event => event.stopPropagation()}
+                                >
+                                  {email}
+                                </a>
+                              </TooltipTrigger>
+                              <TooltipContent>Enviar email</TooltipContent>
+                            </Tooltip>
+                          ) : (
+                            <div className="truncate text-sm text-muted-foreground">
+                              {contact.emails[0]?.value ?? ''}
+                            </div>
+                          )}
                         </TableCell>
                       );
                     }
@@ -411,21 +472,27 @@ export const ContactList = memo(function ContactList({
                               <Badge variant="outline">-</Badge>
                             ) : null}
                             {contact.social.map(item => (
-                              <a
+                              <Tooltip
                                 key={`${contact.id}-${item.provider}-${item.url}`}
-                                href={item.url}
-                                target="_blank"
-                                rel="noreferrer noopener"
-                                className="cursor-pointer"
-                                onClick={event => event.stopPropagation()}
                               >
-                                <Badge variant="secondary">
-                                  {formatSocialBadgeLabel(
-                                    item.provider,
-                                    item.url,
-                                  )}
-                                </Badge>
-                              </a>
+                                <TooltipTrigger asChild>
+                                  <a
+                                    href={item.url}
+                                    target="_blank"
+                                    rel="noreferrer noopener"
+                                    className="cursor-pointer"
+                                    onClick={event => event.stopPropagation()}
+                                  >
+                                    <Badge variant="secondary">
+                                      {formatSocialBadgeLabel(
+                                        item.provider,
+                                        item.url,
+                                      )}
+                                    </Badge>
+                                  </a>
+                                </TooltipTrigger>
+                                <TooltipContent>Abrir perfil</TooltipContent>
+                              </Tooltip>
                             ))}
                           </div>
                         </TableCell>
