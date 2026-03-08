@@ -159,8 +159,12 @@ export function ContactsPage({ view }: ContactsPageProps) {
   const [isColumnsDialogOpen, setColumnsDialogOpen] = useState(false);
   const [isExportDialogOpen, setExportDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | undefined>();
+  const [pendingDroppedFiles, setPendingDroppedFiles] = useState<File[]>([]);
   const [pendingDeleteIds, setPendingDeleteIds] = useState<string[]>([]);
   const [pendingMergeIds, setPendingMergeIds] = useState<string[]>([]);
+  const [pendingMergeGroupBatches, setPendingMergeGroupBatches] = useState<
+    string[][]
+  >([]);
   const [pendingRestoreDeletedIds, setPendingRestoreDeletedIds] = useState<
     string[]
   >([]);
@@ -424,7 +428,9 @@ export function ContactsPage({ view }: ContactsPageProps) {
       event.preventDefault();
       dragCounterRef.current = 0;
       setDragOver(false);
-      void importFiles(Array.from(event.dataTransfer?.files ?? []));
+      const droppedFiles = Array.from(event.dataTransfer?.files ?? []);
+      if (droppedFiles.length === 0) return;
+      setPendingDroppedFiles(droppedFiles);
     };
 
     window.addEventListener('dragenter', onDragEnter);
@@ -511,6 +517,34 @@ export function ContactsPage({ view }: ContactsPageProps) {
     toast.success(`${mergeCount} contatos mesclados em 1`);
   };
 
+  const requestMergeAllGroups = () => {
+    const batches = duplicateGroups
+      .map(group => group.contacts.map(contact => contact.id))
+      .filter(ids => ids.length > 1);
+
+    if (batches.length === 0) {
+      toast.info('Nenhum grupo disponível para mesclagem em lote.');
+      return;
+    }
+
+    setPendingMergeGroupBatches(batches);
+  };
+
+  const confirmMergeAllGroups = async () => {
+    if (pendingMergeGroupBatches.length === 0) return;
+
+    const totalGroups = pendingMergeGroupBatches.length;
+
+    for (const ids of pendingMergeGroupBatches) {
+      await contactsRepo.mergeMany(ids);
+    }
+
+    await reloadContacts();
+    setPendingMergeGroupBatches([]);
+    setSelectedContactIds(new Set());
+    toast.success(`${totalGroups} grupos mesclados.`);
+  };
+
   const confirmRestoreDeleted = async () => {
     if (pendingRestoreDeletedIds.length === 0) return;
     const restoreCount = pendingRestoreDeletedIds.length;
@@ -575,6 +609,16 @@ export function ContactsPage({ view }: ContactsPageProps) {
 
   const clearDeleteFlow = () => {
     setPendingDeleteIds([]);
+  };
+
+  const clearDroppedFilesFlow = () => {
+    setPendingDroppedFiles([]);
+  };
+
+  const confirmDroppedFilesImport = async () => {
+    if (pendingDroppedFiles.length === 0) return;
+    await importFiles(pendingDroppedFiles);
+    clearDroppedFilesFlow();
   };
 
   const handleToggleSelectAll = useCallback(
@@ -769,6 +813,17 @@ export function ContactsPage({ view }: ContactsPageProps) {
                 <Badge variant="secondary">
                   {duplicateGroups.length} grupos encontrados
                 </Badge>
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={duplicateGroups.length === 0}
+                  onClick={requestMergeAllGroups}
+                >
+                  <Merge />
+                  Mesclar todos os grupos
+                </Button>
               </div>
             </CardHeader>
             <CardContent className="flex min-h-0 flex-1 overflow-hidden">
@@ -1141,6 +1196,43 @@ export function ContactsPage({ view }: ContactsPageProps) {
           </DialogContent>
         </Dialog>
 
+        <AlertDialog
+          open={pendingDroppedFiles.length > 0}
+          onOpenChange={open => {
+            if (!open) clearDroppedFilesFlow();
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <FileSpreadsheet />
+                Confirmar importação
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Deseja importar {pendingDroppedFiles.length}{' '}
+                {pendingDroppedFiles.length > 1 ? 'arquivos' : 'arquivo'}{' '}
+                arrastados para a tela?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={clearDroppedFilesFlow}>
+                <span className="inline-flex items-center gap-2">
+                  <X />
+                  Cancelar
+                </span>
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => void confirmDroppedFilesImport()}
+              >
+                <span className="inline-flex items-center gap-2">
+                  <FileSpreadsheet />
+                  Importar arquivos
+                </span>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         <Dialog
           open={pendingDeleteIds.length > 0}
           onOpenChange={open => {
@@ -1210,6 +1302,42 @@ export function ContactsPage({ view }: ContactsPageProps) {
                 <span className="inline-flex items-center gap-2">
                   <Merge />
                   Mesclar contatos
+                </span>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog
+          open={pendingMergeGroupBatches.length > 0}
+          onOpenChange={open => {
+            if (!open) setPendingMergeGroupBatches([]);
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <Merge />
+                Confirmar mesclagem em lote
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Deseja mesclar {pendingMergeGroupBatches.length} grupos de
+                duplicados? Cada grupo será mesclado separadamente.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                onClick={() => setPendingMergeGroupBatches([])}
+              >
+                <span className="inline-flex items-center gap-2">
+                  <X />
+                  Cancelar
+                </span>
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={() => void confirmMergeAllGroups()}>
+                <span className="inline-flex items-center gap-2">
+                  <Merge />
+                  Mesclar grupos
                 </span>
               </AlertDialogAction>
             </AlertDialogFooter>

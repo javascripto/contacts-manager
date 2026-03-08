@@ -91,15 +91,10 @@ export function groupPossibleDuplicateContacts(
     .map(ids => {
       const contactsInGroup = ids
         .map(id => byId.get(id))
-        .filter((contact): contact is Contact => Boolean(contact))
-        .sort((a, b) => b.updatedAt - a.updatedAt);
+        .filter((contact): contact is Contact => Boolean(contact));
       return {
-        id: contactsInGroup
-          .map(contact => contact.id)
-          .sort()
-          .join('|'),
+        id: contactsInGroup.map(contact => contact.id).join('|'),
         contacts: contactsInGroup,
       };
-    })
-    .sort((a, b) => b.contacts.length - a.contacts.length);
+    });
 }
