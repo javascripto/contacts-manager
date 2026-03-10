@@ -1,4 +1,5 @@
 import {
+  Cake,
   Download,
   FileUser,
   type LucideIcon,
@@ -22,7 +23,13 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 
-type NavKey = 'contacts' | 'merge' | 'deleted' | 'import' | 'export';
+type NavKey =
+  | 'contacts'
+  | 'birthdays'
+  | 'merge'
+  | 'deleted'
+  | 'import'
+  | 'export';
 
 type AppSidebarProps = {
   activeKey: NavKey;
@@ -37,6 +44,7 @@ const navigation: Array<{
     label: 'Geral',
     items: [
       { key: 'contacts', title: 'Contatos', icon: FileUser },
+      { key: 'birthdays', title: 'Aniversariantes', icon: Cake },
       { key: 'merge', title: 'Mesclar contatos', icon: Merge },
       { key: 'deleted', title: 'Contatos excluídos', icon: Trash2 },
     ],

@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
+import { BirthdaysPage } from '@/features/contacts/birthdays.page';
 import { ContactsPage } from '@/features/contacts/contacts.page';
 
 export default function App() {
@@ -23,6 +24,10 @@ export default function App() {
           <Route
             path="/contacts"
             element={<ContactsPage view="contacts" />}
+          />
+          <Route
+            path="/contacts/birthdays"
+            element={<BirthdaysPage />}
           />
           <Route
             path="/contacts/merge"

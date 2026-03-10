@@ -10,7 +10,13 @@ import {
 } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
-type NavKey = 'contacts' | 'merge' | 'deleted' | 'import' | 'export';
+type NavKey =
+  | 'contacts'
+  | 'birthdays'
+  | 'merge'
+  | 'deleted'
+  | 'import'
+  | 'export';
 
 type AppLayoutProps = {
   children: ReactNode;

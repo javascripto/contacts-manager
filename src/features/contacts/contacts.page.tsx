@@ -747,10 +747,15 @@ export function ContactsPage({ view }: ContactsPageProps) {
   };
 
   const handleSidebarSelect = (
-    key: 'contacts' | 'merge' | 'deleted' | 'import' | 'export',
+    key: 'contacts' | 'birthdays' | 'merge' | 'deleted' | 'import' | 'export',
   ) => {
     if (key === 'contacts') {
       navigate('/contacts');
+      return;
+    }
+
+    if (key === 'birthdays') {
+      navigate('/contacts/birthdays');
       return;
     }
 
