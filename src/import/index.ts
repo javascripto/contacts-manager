@@ -5,11 +5,21 @@ import { parseInternalJsonContacts } from '@/import/json/parser';
 import { parseVcard } from '@/import/vcard/parser';
 
 function detectCsvKind(headers: string[]): 'google' | 'outlook' {
-  const normalized = headers.map(header => header.trim().toLowerCase());
+  const normalized = headers.map(header =>
+    header
+      .replace(/^\uFEFF/, '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase(),
+  );
 
   if (
     normalized.includes('given name') ||
-    normalized.includes('e-mail 1 - value')
+    normalized.includes('e-mail 1 - value') ||
+    normalized.includes('organization 1 - name') ||
+    normalized.includes('nome proprio') ||
+    normalized.includes('sobrenome')
   ) {
     return 'google';
   }

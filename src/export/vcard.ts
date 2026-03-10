@@ -9,25 +9,36 @@ function escapeVcardValue(value: string): string {
     .replace(/\n/g, '\\n');
 }
 
+function escapeVcardStructuredValue(value: string): string {
+  return value
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/\n/g, '\\n');
+}
+
 export function exportContactsToVcard(contacts: Contact[]): string {
   return contacts
     .map(contact => {
       const display =
         contact.name?.display ??
-        [contact.name?.first, contact.name?.last].filter(Boolean).join(' ');
+        [contact.name?.first, contact.name?.middle, contact.name?.last]
+          .filter(Boolean)
+          .join(' ');
       const nLine = [
         contact.name?.last ?? '',
         contact.name?.first ?? '',
         contact.name?.middle ?? '',
         contact.name?.prefix ?? '',
         contact.name?.suffix ?? '',
-      ].join(';');
+      ]
+        .map(escapeVcardStructuredValue)
+        .join(';');
 
       const lines = [
         'BEGIN:VCARD',
         'VERSION:3.0',
         `FN:${escapeVcardValue(display)}`,
-        `N:${escapeVcardValue(nLine)}`,
+        `N:${nLine}`,
       ];
 
       for (const phone of contact.phones)
