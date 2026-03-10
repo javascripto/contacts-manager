@@ -14,6 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { normalizeBirthdayToInternal } from '@/core/contacts/contact.birthday';
 import type { Contact } from '@/core/contacts/contact.types';
 import { contactsRepo } from '@/storage/contacts.repo';
+import { cn } from '../../lib/utils';
 
 type BirthdayEntry = {
   id: string;
@@ -165,7 +166,7 @@ export function BirthdaysPage() {
         className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col overflow-hidden px-4 py-4 md:px-8 md:py-6"
         style={{ height: 'calc(100dvh - 3.5rem)' }}
       >
-        <Card className="overflow-hidden border-border/70 bg-card/95">
+        <Card className="overflow-hidden border-border/70 bg-card/95 py-0">
           <CardHeader className="relative gap-4 overflow-hidden border-b bg-linear-to-r from-amber-100/70 via-background to-rose-100/60 dark:from-slate-900 dark:via-slate-950 dark:to-amber-950/60">
             <div className="absolute inset-y-0 right-0 hidden w-1/3 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.22),transparent_55%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.22),transparent_55%)] md:block" />
             <div className="relative flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -174,16 +175,12 @@ export function BirthdaysPage() {
                   <Cake className="size-3.5" />
                   Agenda anual
                 </div>
-                <div className="space-y-1">
-                  <CardTitle className="text-2xl md:text-3xl">
-                    Aniversariantes
-                  </CardTitle>
-                  <CardDescription className="max-w-2xl text-sm md:text-base">
-                    Calendário anual com os aniversários organizados por mês.
-                    Quando o contato tem ano de nascimento, a idade exibida é a
-                    que ele completa na data deste ano.
-                  </CardDescription>
-                </div>
+                <CardTitle className="text-2xl md:text-3xl">
+                  Aniversariantes
+                </CardTitle>
+                <CardDescription className="max-w-2xl text-sm md:text-base">
+                  Calendário anual com os aniversários organizados por mês.
+                </CardDescription>
               </div>
               <div className="flex items-center gap-3 self-start rounded-2xl border bg-background/85 px-4 py-3 shadow-xs">
                 <CalendarDays className="size-4 text-amber-600" />
@@ -205,18 +202,20 @@ export function BirthdaysPage() {
                 {monthGroups.map(group => (
                   <Card
                     key={group.month}
-                    className={
+                    className={cn(
+                      'py-0',
                       group.month === currentMonth
                         ? 'flex min-h-72 flex-col border-amber-300/70 bg-amber-50/80 shadow-sm ring-1 ring-amber-300/50 dark:border-amber-700/70 dark:bg-amber-950/20 dark:ring-amber-700/50'
-                        : 'flex min-h-72 flex-col border-border/70 bg-card/95 shadow-xs'
-                    }
+                        : 'flex min-h-72 flex-col border-border/70 bg-card/95 shadow-xs',
+                    )}
                   >
                     <CardHeader
-                      className={
+                      className={cn(
+                        'pt-2',
                         group.month === currentMonth
                           ? 'border-b bg-linear-to-r from-amber-100/80 to-rose-100/60 dark:from-amber-950/60 dark:to-slate-900'
-                          : 'border-b bg-muted/30'
-                      }
+                          : 'border-b bg-muted/30',
+                      )}
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div>
