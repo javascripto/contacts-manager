@@ -167,7 +167,7 @@ export function BirthdaysPage() {
         style={{ height: 'calc(100dvh - 3.5rem)' }}
       >
         <Card className="overflow-hidden border-border/70 bg-card/95 py-0">
-          <CardHeader className="relative gap-4 overflow-hidden border-b bg-linear-to-r from-amber-100/70 via-background to-rose-100/60 dark:from-slate-900 dark:via-slate-950 dark:to-amber-950/60">
+          <CardHeader className="py-2 relative gap-4 overflow-hidden border-b bg-linear-to-r from-amber-100/70 via-background to-rose-100/60 dark:from-slate-900 dark:via-slate-950 dark:to-amber-950/60">
             <div className="absolute inset-y-0 right-0 hidden w-1/3 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.22),transparent_55%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.22),transparent_55%)] md:block" />
             <div className="relative flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div className="space-y-2">
